@@ -1,0 +1,22 @@
+{
+  "name": "proton-web-sdk",
+  "version": "1.0.5",
+  "description": "Proton WEB SDK()\u001b[",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/levent8421/prton-web-sdk.git"
+  },
+  "keywords": [
+    "Proton"
+  ],
+  "author": "Levent",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/levent8421/prton-web-sdk/issues"
+  },
+  "homepage": "https://github.com/levent8421/prton-web-sdk#readme"
+}
