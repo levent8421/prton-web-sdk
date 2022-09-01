@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>模拟调试</title>
+</head>
+<body>
+<button id="btn-test">Test</button>
+<iframe id="if_inner" src="./example.html" frameborder="0" style="width:400px;height:400px"></iframe>
+<script>
+    window.onload = function () {
+        var iframe = document.getElementById('if_inner');
+        console.log(iframe.contentWindow.document);
+        document.getElementById('btn-test').onclick = () => {
+            window.postMessage('Hallo', '*');
+        };
+    };
+</script>
+</body>
+</html>

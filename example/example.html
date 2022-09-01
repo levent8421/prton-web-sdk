@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Proton_WebSDK_Example</title>
+    <script src="../index.js"></script>
+</head>
+<body>
+<script>
+    window.__$proton__ = {};
+    var proton = new ProtonWebSdk();
+    proton.connect().then(res => {
+        console.log('Connected', res);
+    }).catch(err => {
+        console.log('Connect error', err);
+    });
+    window.addEventListener('message', e => {
+        console.log(e)
+    });
+</script>
+</body>
+</html>
