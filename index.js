@@ -1,6 +1,6 @@
 (function (w, m) {
-    const BRIDGE_NAME = "__$proton__";
-    const ROOT_ELEMENT = w;
+    var BRIDGE_NAME = "__$proton__";
+    var ROOT_ELEMENT = w;
 
     function ProtonWebSdk() {
         this.nextTraceId = 0;
@@ -15,8 +15,8 @@
             if (!msg) {
                 return;
             }
-            const {action} = msg;
-            const callback = this.actionCallback[action];
+            var {action} = msg;
+            var callback = this.actionCallback[action];
             if (callback) {
                 callback(msg);
             }
@@ -26,8 +26,8 @@
         },
 
         onRequestComplete: function (res) {
-            const requestId = res.requestId;
-            const request = this.requestTable[requestId];
+            var requestId = res.requestId;
+            var request = this.requestTable[requestId];
             if (!request) {
                 console.error("Can not find requestId:" + requestId);
                 return;
@@ -37,18 +37,18 @@
         },
 
         _setup: function () {
-            const _this = this;
-            this.bridge.onMessage = msg => {
+            var _this = this;
+            this.bridge.onMessage = function (msg) {
                 _this.onMessage(msg);
             };
-            this.bridge.onRequestComplete = res => {
+            this.bridge.onRequestComplete = function (res) {
                 _this.onRequestComplete(res);
             };
         },
 
         connect: function () {
-            const _this = this;
-            return new Promise((resolve, reject) => {
+            var _this = this;
+            return new Promise(function (resolve, reject) {
                 if (ROOT_ELEMENT.hasOwnProperty(BRIDGE_NAME)) {
                     _this.bridge = ROOT_ELEMENT[BRIDGE_NAME];
                     _this._setup()
@@ -61,29 +61,35 @@
         },
 
         sendCmdAsString: function (cmdStr) {
+            const _this = this;
             return new Promise((resolve, reject) => {
                 if (!this.bridge) {
                     reject('Bridge not connected!');
                     return;
                 }
-                const res = this.bridge.sendCmd(cmdStr);
-                resolve(res);
+                setTimeout(function () {
+                    var res = _this.bridge.sendCmd(cmdStr);
+                    resolve(res);
+                }, 0);
             });
         },
 
         setConsoleVisible: function (visible) {
-            return new Promise((resolve, reject) => {
+            const _this = this;
+            return new Promise(function (resolve, reject) {
                 if (!this.bridge) {
                     reject('Bridge not connected!');
                     return;
                 }
-                const res = this.bridge.setConsoleVisible(visible);
-                resolve(res);
+                setTimeout(function () {
+                    var res = _this.bridge.setConsoleVisible(visible);
+                    resolve(res);
+                }, 0);
             });
         },
 
         sendAction: function (props) {
-            const cmd = {
+            var cmd = {
                 traceId: this.nextTraceId++,
                 action: props.action,
                 actionVersion: props.actionVersion,
@@ -91,10 +97,10 @@
                 priority: props.priority || 3,
                 type: props.type || 'request',
             };
-            const cmdStr = JSON.stringify(cmd);
-            return new Promise((resolve, reject) => {
-                this.sendCmdAsString(cmdStr).then(res => {
-                    const resObj = JSON.parse(res);
+            var cmdStr = JSON.stringify(cmd);
+            return new Promise(function (resolve, reject) {
+                this.sendCmdAsString(cmdStr).then(function (res) {
+                    var resObj = JSON.parse(res);
                     resolve(resObj);
                 }).catch(reject);
             });
@@ -108,30 +114,32 @@
             if (!props.method) {
                 props.method = 'GET';
             }
-            const body = props.body;
+            var body = props.body;
             if ((typeof body) !== 'string') {
                 props.body = JSON.stringify(props.body);
             }
-            const params = JSON.stringify(props);
-            const _this = this;
-            return new Promise((resolve, reject) => {
+            var params = JSON.stringify(props);
+            var _this = this;
+            return new Promise(function (resolve, reject) {
                 if (!props.url) {
                     reject('url is required!');
                     return;
                 }
-                const requestId = _this.bridge.request(params);
-                _this.requestTable[requestId] = {
-                    request: props,
-                    callback: res => {
-                        const status = res.status;
-                        if (status !== 200) {
-                            reject(res);
-                        } else {
-                            resolve(res);
+                setTimeout(function () {
+                    var requestId = _this.bridge.request(params);
+                    _this.requestTable[requestId] = {
+                        request: props,
+                        callback: function (res) {
+                            var status = res.status;
+                            if (status !== 200) {
+                                reject(res);
+                            } else {
+                                resolve(res);
+                            }
                         }
-                    }
-                };
-            })
+                    };
+                }, 0);
+            });
         },
 
         request: function (props) {
@@ -141,6 +149,101 @@
         subscribeAction: function (action, callback) {
             this.actionCallback[action] = callback;
         },
+
+        readFile: function (props) {
+            var params = {
+                path: props.path,
+                charset: props.charset || 'utf8',
+                mode: props.mode || 'string'
+            };
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.readFile(JSON.stringify(params));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        writeFile: function (props) {
+            var params = {
+                path: props.path,
+                mode: props.mode || 'string',
+                content: props.content,
+                charset: props.charset || 'utf8',
+                append: props.append || false,
+                autoCreate: props.autoCreate || true
+            };
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.writeFile(JSON.stringify(params));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        fileStat: function (filePath) {
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.fileStat(filePath);
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        deleteFile: function (props) {
+            var params = {
+                path: props.path,
+            };
+            if (props.hasOwnProperty('recursion')) {
+                params.recursion = props.recursion;
+            } else {
+                params.recursion = true;
+            }
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.deleteFile(JSON.stringify(params));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        listFile: function (filePath) {
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.listFile(filePath);
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        mkdir: function (props) {
+            var params = {
+                path: props.path,
+            };
+            if (props.hasOwnProperty('createParent')) {
+                params.createParent = props.createParent;
+            } else {
+                params.createParent = true;
+            }
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.mkdir(JSON.stringify(params));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        }
     };
     if (m) {
         m.export = ProtonWebSdk;
