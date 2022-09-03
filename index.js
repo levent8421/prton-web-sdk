@@ -246,7 +246,7 @@
         }
     };
     if (m) {
-        m.export = ProtonWebSdk;
+        m.exports = ProtonWebSdk;
     } else {
         w.ProtonWebSdk = ProtonWebSdk;
     }
