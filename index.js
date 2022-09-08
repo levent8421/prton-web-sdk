@@ -36,6 +36,17 @@
             delete this.requestTable[requestId];
         },
 
+        onMqttEvent: function (res) {
+            var requestId = res.requestId;
+            var request = this.requestTable[requestId];
+            if (!request) {
+                console.error("Can not find requestId:" + requestId);
+                return
+            }
+            request.callback(res);
+            delete this.requestTable[requestId];
+        },
+
         _setup: function () {
             var _this = this;
             this.bridge.onMessage = function (msg) {
@@ -44,6 +55,9 @@
             this.bridge.onRequestComplete = function (res) {
                 _this.onRequestComplete(res);
             };
+            this.bridge.onMqttEvent = function (res) {
+                _this.onMqttEvent(res)
+            }
         },
 
         connect: function () {
@@ -243,6 +257,121 @@
                     resolve(resObj);
                 }, 0);
             });
+        },
+
+        connectMqtt: function (props) {
+            var param = {
+                host: props.host,
+                port: props.port,
+                autoReconnect: props.autoReconnect || true,
+                username: props.username,
+                password: props.password
+            };
+            var _this = this;
+            return new Promise(function (resolve, reject) {
+                if (!props.host || !props.port || !props.username || !props.password) {
+                    reject('url|port|username|password is required!');
+                    return;
+                }
+                setTimeout(function () {
+                        var requestId = _this.bridge.connectMqtt(JSON.stringify(param));
+                        _this.requestTable[requestId] = {
+                            request: param,
+                            callback: function (res) {
+                                var hasError = res.hasError;
+                                if (hasError) {
+                                    reject(res);
+                                } else {
+                                    resolve(res);
+                                }
+                            }
+                        }
+                    }
+                    , 0)
+            })
+        },
+
+        mqttClose: function (props) {
+            var param = {
+                chId: props.chId
+            }
+            var _this = this;
+            return new Promise(function (resolve) {
+                if (!param.chId) {
+                    resolve("chId is required!")
+                }
+                setTimeout(function () {
+                    var res = _this.bridge.mqttClose(JSON.stringify(param));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        mqttSendMessage: function (props) {
+            var param = {
+                payload: props.payload,
+                payloadMode: props.payloadMode || "string",
+                topic: props.topic,
+                qos: props.qos,
+                retained: props.retained || true
+            }
+            var _this = this;
+            return new Promise(function (resolve) {
+                if (!param.chId) {
+                    resolve("chId is required!")
+                    return
+                }
+                setTimeout(function () {
+                    var res = _this.bridge.mqttSendMessage(JSON.stringify(param));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0);
+            });
+        },
+
+        mqttSubscribeTopic: function (props) {
+            var param = {
+                topic: props.topic,
+                qos: props.qos,
+                payloadMode: props.payloadMode || "string"
+            }
+            var _this = this;
+            return new Promise(function (resolve,reject){
+                if (!param.topic || !param.qos){
+                    reject("topic|qos is required!")
+                    return
+                }
+                setTimeout(function (){
+                    var requestId = _this.bridge.mqttSubscribeTopic(JSON.stringify(param))
+                    _this.requestTable[requestId] = {
+                        request: param,
+                        callback: function (res) {
+                            var hasError = res.hasError;
+                            if (hasError) {
+                                reject(res);
+                            } else {
+                                resolve(res);
+                            }
+                        }
+                    }
+                },0)
+            })
+        },
+
+        mqttCancelSubscribeTopic: function (topic) {
+            var _this = this;
+            return new Promise(function (resolve){
+                if (topic){
+                    resolve("props")
+                    return
+                }
+                setTimeout(function (){
+                    var res = _this.bridge.mqttCancelSubscribeTopic(topic);
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                },0)
+            })
         }
     };
     if (m) {
