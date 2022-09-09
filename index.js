@@ -37,6 +37,7 @@
         },
 
         onMqttEvent: function (res) {
+            console.log("onMqttEvent:" + JSON.stringify(res))
             var requestId = res.requestId;
             var request = this.requestTable[requestId];
             if (!request) {
@@ -45,6 +46,17 @@
             }
             request.callback(res);
             delete this.requestTable[requestId];
+        },
+
+        onMqttSubscribe: function (res) {
+            console.log("onMqttSubscribe:" + JSON.stringify(res))
+            var requestId = res.requestId;
+            var request = this.requestTable[requestId];
+            if (!request) {
+                console.error("Can not find requestId:" + requestId);
+                return
+            }
+            request.callback(res);
         },
 
         _setup: function () {
@@ -57,6 +69,9 @@
             };
             this.bridge.onMqttEvent = function (res) {
                 _this.onMqttEvent(res)
+            };
+            this.bridge.onMqttSubscribe = function (res) {
+                _this.onMqttSubscribe(res)
             }
         },
 
@@ -259,7 +274,12 @@
             });
         },
 
+
         connectMqtt: function (props) {
+            return this.startMqtt(props);
+        },
+
+        startMqtt: function (props) {
             var param = {
                 host: props.host,
                 port: props.port,
@@ -270,13 +290,12 @@
             var _this = this;
             return new Promise(function (resolve, reject) {
                 if (!props.host || !props.port || !props.username || !props.password) {
-                    reject('url|port|username|password is required!');
+                    reject('url&port & username & password is required!');
                     return;
                 }
                 setTimeout(function () {
                         var requestId = _this.bridge.connectMqtt(JSON.stringify(param));
                         _this.requestTable[requestId] = {
-                            request: param,
                             callback: function (res) {
                                 var hasError = res.hasError;
                                 if (hasError) {
@@ -287,21 +306,18 @@
                             }
                         }
                     }
-                    , 0)
+                    , 500)
             })
         },
 
-        mqttClose: function (props) {
-            var param = {
-                chId: props.chId
-            }
+        mqttClose: function (chId) {
             var _this = this;
             return new Promise(function (resolve) {
-                if (!param.chId) {
+                if (!chId) {
                     resolve("chId is required!")
                 }
                 setTimeout(function () {
-                    var res = _this.bridge.mqttClose(JSON.stringify(param));
+                    var res = _this.bridge.mqttClose(chId);
                     var resObj = JSON.parse(res);
                     resolve(resObj);
                 }, 0);
@@ -310,6 +326,7 @@
 
         mqttSendMessage: function (props) {
             var param = {
+                chId: props.chId,
                 payload: props.payload,
                 payloadMode: props.payloadMode || "string",
                 topic: props.topic,
@@ -322,6 +339,11 @@
                     resolve("chId is required!")
                     return
                 }
+                const re = '^[0-2]$';
+                if (!param.qos.toString().match(re)) {
+                    resolve('qos must 0|1|2')
+                    return;
+                }
                 setTimeout(function () {
                     var res = _this.bridge.mqttSendMessage(JSON.stringify(param));
                     var resObj = JSON.parse(res);
@@ -331,21 +353,31 @@
         },
 
         mqttSubscribeTopic: function (props) {
+            return this.subscribeTopic(props);
+        },
+
+        subscribeTopic: function (props) {
             var param = {
+                chId: props.chId,
                 topic: props.topic,
-                qos: props.qos,
+                qos: props.qos || 1,
                 payloadMode: props.payloadMode || "string"
             }
             var _this = this;
-            return new Promise(function (resolve,reject){
-                if (!param.topic || !param.qos){
-                    reject("topic|qos is required!")
+            return new Promise(function (resolve, reject) {
+                if (!param.topic || !param.qos || !param.chId) {
+                    console.log("param:" + JSON.stringify(param))
+                    reject("topic & qos & chId is required!")
                     return
                 }
-                setTimeout(function (){
+                const re = '^[0-2]$';
+                if (!param.qos.toString().match(re)) {
+                    resolve('qos must 0|1|2')
+                    return;
+                }
+                setTimeout(function () {
                     var requestId = _this.bridge.mqttSubscribeTopic(JSON.stringify(param))
                     _this.requestTable[requestId] = {
-                        request: param,
                         callback: function (res) {
                             var hasError = res.hasError;
                             if (hasError) {
@@ -355,22 +387,26 @@
                             }
                         }
                     }
-                },0)
+                }, 500)
             })
         },
 
-        mqttCancelSubscribeTopic: function (topic) {
+        mqttCancelSubscribeTopic: function (props) {
+            var param = {
+                chId: props.chId,
+                topic: props.topic,
+            }
             var _this = this;
-            return new Promise(function (resolve){
-                if (topic){
-                    resolve("props")
+            return new Promise(function (resolve) {
+                if (!param.topic || !param.chId) {
+                    resolve("topic & chId is required!")
                     return
                 }
-                setTimeout(function (){
-                    var res = _this.bridge.mqttCancelSubscribeTopic(topic);
+                setTimeout(function () {
+                    var res = _this.bridge.mqttCancelSubscribeTopic(JSON.stringify(param));
                     var resObj = JSON.parse(res);
                     resolve(resObj);
-                },0)
+                }, 0)
             })
         }
     };
