@@ -117,6 +117,20 @@
             });
         },
 
+        setDebugModel: function () {
+            const _this = this;
+            return new Promise(function (resolve, reject) {
+                if (!_this.bridge) {
+                    reject('Bridge not connected!');
+                    return;
+                }
+                setTimeout(function () {
+                    var res = _this.bridge.setDebugModel();
+                    resolve(res);
+                }, 0);
+            });
+        },
+
         sendAction: function (props) {
             var cmd = {
                 traceId: this.nextTraceId++,
