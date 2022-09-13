@@ -9,8 +9,8 @@
     <script src="../index.js"></script>
 </head>
 <body>
+<button id="btn-test">Test</button>
 <script>
-    window.__$proton__ = {};
     var proton = new ProtonWebSdk();
     proton.connect().then(res => {
         console.log('Connected', res);
@@ -20,6 +20,10 @@
     window.addEventListener('message', e => {
         console.log(e)
     });
+    document.getElementById('btn-test').onclick = function () {
+        window.parent.postMessage('hallo', '*');
+        console.log(window);
+    };
 </script>
 </body>
 </html>
