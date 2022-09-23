@@ -92,7 +92,7 @@
         sendCmdAsString: function (cmdStr) {
             const _this = this;
             return new Promise((resolve, reject) => {
-                if (!this.bridge) {
+                if (!_this.bridge) {
                     reject('Bridge not connected!');
                     return;
                 }
@@ -106,7 +106,7 @@
         setConsoleVisible: function (visible) {
             const _this = this;
             return new Promise(function (resolve, reject) {
-                if (!this.bridge) {
+                if (!_this.bridge) {
                     reject('Bridge not connected!');
                     return;
                 }
@@ -141,8 +141,9 @@
                 type: props.type || 'request',
             };
             var cmdStr = JSON.stringify(cmd);
+            const _this = this;
             return new Promise(function (resolve, reject) {
-                this.sendCmdAsString(cmdStr).then(function (res) {
+                _this.sendCmdAsString(cmdStr).then(function (res) {
                     var resObj = JSON.parse(res);
                     resolve(resObj);
                 }).catch(reject);
