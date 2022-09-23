@@ -423,6 +423,28 @@
                     resolve(resObj);
                 }, 0)
             })
+        },
+
+        updateMetadataManager: function (props) {
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.updateMetadataManager(JSON.stringify(props));
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0)
+            })
+        },
+
+        queryMetadataManager: function () {
+            var _this = this;
+            return new Promise(function (resolve) {
+                setTimeout(function () {
+                    var res = _this.bridge.queryMetadataManager();
+                    var resObj = JSON.parse(res);
+                    resolve(resObj);
+                }, 0)
+            })
         }
     };
     if (m) {
