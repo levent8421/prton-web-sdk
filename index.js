@@ -103,7 +103,7 @@
             });
         },
 
-        setConsoleVisible: function (visible) {
+        setConsoleVisible: function () {
             const _this = this;
             return new Promise(function (resolve, reject) {
                 if (!_this.bridge) {
@@ -111,7 +111,7 @@
                     return;
                 }
                 setTimeout(function () {
-                    var res = _this.bridge.setConsoleVisible(visible);
+                    var res = _this.bridge.setConsoleVisible();
                     resolve(res);
                 }, 0);
             });
