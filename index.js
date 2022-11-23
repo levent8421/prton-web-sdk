@@ -132,18 +132,19 @@
             });
         },
         signHeader: function (cmd, nextTraceId, date) {
+
             var items = [
-                'type=' + cmd.type || 'request',
+                'type=' + (cmd.type || 'request'),
                 'action=' + cmd.action,
-                'actionVersion=' + cmd.actionVersion || 1,
-                'priority=' + cmd.priority || 1,
+                'actionVersion=' + (cmd.actionVersion || 1),
+                'priority=' + (cmd.priority || 1),
                 'traceId=' + nextTraceId,
-                'stationId=' + cmd.stationId || '',
+                'stationId=' + (cmd.stationId || ''),
                 'timestamp=' + date,
-                'deviceMetadataVersion=' + cmd.deviceMetadataVersion || 1,
-                'stateMetadataVersion=' + cmd.stateMetadataVersion || 1,
-                'appVersion=' + cmd.appVersion || "1",
-                'protocolVersion=' + cmd.protocolVersion || 1
+                'deviceMetadataVersion=' + (cmd.deviceMetadataVersion || 1),
+                'stateMetadataVersion=' + (cmd.stateMetadataVersion || 1),
+                'appVersion=' + (cmd.appVersion || "1"),
+                'protocolVersion=' + (cmd.protocolVersion || 1)
             ]
             var sorted = items.sort();
             var signLine = '';
@@ -157,7 +158,7 @@
                     signLine += ('&' + item);
                 }
             }
-            signLine = signLine + cmd.signKey || null
+            signLine = signLine + (cmd.signKey || null)
             return this.md5Hex(signLine);
         },
         _wrapAsCmd: function (props) {
