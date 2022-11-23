@@ -1,6 +1,7 @@
 (function (w, m) {
     var BRIDGE_NAME = "__$proton__";
     var ROOT_ELEMENT = w;
+    const md5 = require('./md5.js').default;
 
     function ProtonWebSdk() {
         this.nextTraceId = 0;
@@ -130,16 +131,57 @@
                 }, 0);
             });
         },
-
-        sendAction: function (props) {
+        signHeader: function (cmd, nextTraceId) {
+            var items = [
+                'type=' + cmd.type,
+                'action=' + cmd.action,
+                'actionVersion=' + cmd.actionVersion,
+                'priority=' + cmd.priority,
+                'traceId=' + nextTraceId,
+                'stationId=' + cmd.stationId || "",
+                'timestamp=' + cmd.timestamp,
+                'deviceMetadataVersion=' + cmd.deviceMetadataVersion || 1,
+                'stateMetadataVersion=' + cmd.stateMetadataVersion || 1,
+                'appVersion=' + cmd.appVersion,
+                'protocolVersion=' + cmd.protocolVersion || 1
+            ]
+            var sorted = items.sort();
+            var signLine = '';
+            var first = true;
+            for (var item of sorted) {
+                if (first) {
+                    signLine += item;
+                    first = false;
+                } else {
+                    signLine += ('&' + item);
+                }
+            }
+            signLine = signLine + cmd.signKey || null
+            return this.md5Hex(signLine);
+        },
+        _wrapAsCmd: function (props) {
+            let nextTraceId = this.nextTraceId++
+            let sign = this.signHeader(props, nextTraceId)
             var cmd = {
-                traceId: this.nextTraceId++,
+                traceId: nextTraceId,
                 action: props.action,
                 actionVersion: props.actionVersion,
                 payload: props.payload,
-                priority: props.priority || 3,
-                type: props.type || 'request',
+                priority: props.priority,
+                type: props.type,
+                stationId: props.stationId,
+                timestamp: props.timestamp,
+                deviceMetadataVersion: props.deviceMetadataVersion,
+                stateMetadataVersion: props.stateMetadataVersion,
+                appVersion: props.appVersion,
+                protocolVersion: props.protocolVersion,
+                headerSign: sign
             };
+            return cmd
+        },
+
+        sendAction: function (props) {
+            var cmd = this._wrapAsCmd(props)
             var cmdStr = JSON.stringify(cmd);
             const _this = this;
             return new Promise(function (resolve, reject) {
@@ -158,6 +200,7 @@
             if (!props.method) {
                 props.method = 'GET';
             }
+            console.log(2)
             var body = props.body;
             if ((typeof body) !== 'string') {
                 props.body = JSON.stringify(props.body);
@@ -187,6 +230,7 @@
         },
 
         request: function (props) {
+            console.log(1)
             return this.sendRequest(props);
         },
 
@@ -445,6 +489,9 @@
                     resolve(resObj);
                 }, 0)
             })
+        },
+        md5Hex: function (str) {
+            return md5.hex_md5(str).toUpperCase();
         }
     };
     if (m) {
