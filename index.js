@@ -131,25 +131,23 @@
                 }, 0);
             });
         },
-        signHeader: function (cmd, nextTraceId, date) {
-
+        signHeader: function (cmd, nextTraceId, date, config) {
             var items = [
                 'type=' + (cmd.type || 'request'),
                 'action=' + cmd.action,
                 'actionVersion=' + (cmd.actionVersion || 1),
                 'priority=' + (cmd.priority || 1),
                 'traceId=' + nextTraceId,
-                'stationId=' + (cmd.stationId || ''),
+                'stationId=' + (config.stationId || ''),
                 'timestamp=' + date,
                 'deviceMetadataVersion=' + (cmd.deviceMetadataVersion || 1),
                 'stateMetadataVersion=' + (cmd.stateMetadataVersion || 1),
-                'appVersion=' + (cmd.appVersion || "1"),
+                'appVersion=' + (cmd.appVersion || '1'),
                 'protocolVersion=' + (cmd.protocolVersion || 1)
             ]
             var sorted = items.sort();
             var signLine = '';
             var first = true;
-            console.log(sorted)
             for (var item of sorted) {
                 if (first) {
                     signLine += item;
@@ -158,33 +156,35 @@
                     signLine += ('&' + item);
                 }
             }
-            signLine = signLine + (cmd.signKey || null)
+            signLine = signLine + (config.signKey || 'levent8421')
+            console.log("signLine:" + signLine)
             return this.md5Hex(signLine);
         },
+
         _wrapAsCmd: function (props) {
             var nextTraceId = this.nextTraceId++
             var date = new Date().valueOf()
-            var sign = this.signHeader(props, nextTraceId, date)
-            var cmd = {
+            const conf = JSON.parse(this.bridge.queryMetadataManager());
+            console.log("config:" + JSON.stringify(conf))
+            var sign = this.signHeader(props, nextTraceId, date, conf)
+            return {
                 traceId: nextTraceId,
                 action: props.action,
                 actionVersion: props.actionVersion || 1,
                 priority: props.priority || 1,
                 type: props.type || 'request',
-                stationId: props.stationId || '',
+                stationId: conf.stationId || '',
                 timestamp: date,
                 deviceMetadataVersion: props.deviceMetadataVersion || 1,
                 stateMetadataVersion: props.stateMetadataVersion || 1,
-                appVersion: props.appVersion || "1",
+                appVersion: props.appVersion || '1',
                 protocolVersion: props.protocolVersion || 1,
                 headerSign: sign,
                 payload: props.payload
             };
-            return cmd
         },
 
         sendAction: function (props) {
-            console.log(1)
             var cmd = this._wrapAsCmd(props)
             var cmdStr = JSON.stringify(cmd);
             const _this = this;
